@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: "realtime-notifications-service"
+    build:
+      context: .
+    command: "/usr/local/bin/realtime-notification --config=/usr/src/app/cmd/realtime/local_config.yaml"
+    restart: always
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+    depends_on:
+      notifications-broker:
+        condition: service_healthy # needful setting which wait available postgres host
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - notifications_net
+
+  notifications-broker:
+    image: rabbitmq:3-management-alpine
+    container_name: "notifications-broker"
+    ports:
+      - "5676:5672"   # for sender and consumer connections
+      - "15676:15672" # for serve RabbitMQ GUI
+    volumes:
+      - notifications-broker-data:/var/lib/rabbitmq
+      - notifications-broker-data-log:/var/log/rabbitmq
+    restart: always
+    networks:
+      - notifications_net
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 15s
+      retries: 5
+
+  cache:
+    build:
+      context: infra/redis
+      dockerfile: Dockerfile
+    container_name: connections-storage
+    image: redis:7.2.5
+    ##    for debugging
+    ports:
+      - "6479:6479"
+    volumes:
+      - redis-cache-data:/data
+    networks:
+      - notifications_net
+
+volumes:
+  redis-cache-data:
+  notifications-broker-data:
+  notifications-broker-data-log:
+
+networks:
+  notifications_net:
+    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 172.16.1.0/24

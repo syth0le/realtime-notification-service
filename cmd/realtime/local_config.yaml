@@ -1,0 +1,28 @@
+logger:
+  level: "debug"
+  encoding: "console"
+  path: "stdout"
+
+public_server:
+  enable: true
+  endpoint: "localhost"
+  port: 8090
+
+admin_server:
+  enable: true
+  endpoint: "localhost"
+  port: 8091
+#  const websocket = new WebSocket("ws://localhost:8001/");
+application:
+  app: "realtime-notifications"
+
+redis:
+  enable: true
+  address: "redis-cache:6479"
+  password: "password"
+
+queue:
+  enable: true
+  address: "amqp://guest:guest@notifications-broker:5672"
+  queue_name: "notifications-queue"
+  exchange_name: "events"
