@@ -11,8 +11,9 @@ import (
 	xcloser "github.com/syth0le/gopnik/closer"
 
 	"github.com/syth0le/realtime-notification-service/cmd/realtime/configuration"
-	"github.com/syth0le/realtime-notification-service/internal/clients/redis"
 	"github.com/syth0le/realtime-notification-service/internal/infrastructure_services/connections_pool"
+	"github.com/syth0le/realtime-notification-service/internal/infrastructure_services/consumers_pool"
+	"github.com/syth0le/realtime-notification-service/internal/model"
 	"github.com/syth0le/realtime-notification-service/internal/service/notifications"
 )
 
@@ -55,22 +56,29 @@ type env struct {
 }
 
 func (a *App) constructEnv(ctx context.Context) (*env, error) {
-	redisClient := redis.NewRedisClient(a.Logger, a.Config.ConnectionsStorage) // TODO: move to gopnik
-	a.Closer.Add(redisClient.Close)
-
 	conn, err := a.makeRabbitConn(a.Config.Queue) // todo: make conn pool
 	if err != nil {
 		return nil, fmt.Errorf("make rabbit conn: %w", err)
 	}
 
+	connectionsPool := connections_pool.NewServiceImpl(a.Logger)
+	consumersPool := consumers_pool.NewServiceImpl(
+		a.Logger,
+		conn,
+		a.Config.Queue.Enable,
+		a.Config.Queue.QueueName,
+		a.Config.Queue.ExchangeName,
+		connectionsPool,
+	)
+
+	mode := model.UserID("ROUTING_KEY_USERID")
+	consumersPool.UselessCode(&mode)
+
 	return &env{
 		notifications: &notifications.ServiceImpl{
-			ConnectionsPool: connections_pool.NewServiceImpl(a.Logger),
+			ConnectionsPool: connectionsPool,
+			ConsumersPool:   consumersPool,
 			Logger:          a.Logger,
-			Conn:            conn,
-			Enable:          a.Config.Queue.Enable,
-			QueueName:       a.Config.Queue.QueueName,
-			ExchangeName:    a.Config.Queue.ExchangeName,
 		},
 	}, nil
 }

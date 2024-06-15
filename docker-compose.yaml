@@ -36,20 +36,6 @@ services:
       timeout: 15s
       retries: 5
 
-  connections-storage:
-    build:
-      context: infra/redis
-      dockerfile: Dockerfile
-    container_name: connections-storage
-    image: redis:7.2.5
-    ##    for debugging
-    ports:
-      - "6479:6479"
-    volumes:
-      - redis-cache-data:/data
-    networks:
-      - notifications_net
-
 volumes:
   redis-cache-data:
   notifications-broker-data:

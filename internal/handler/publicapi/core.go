@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 
 	"github.com/gobwas/ws"
@@ -40,7 +39,6 @@ func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Requ
 	}
 
 	go func() {
-		fmt.Println(ctx.Err(), <-ctx.Done())
 		defer conn.Close()
 
 		userID := model.UserID("ROUTING_KEY_USERID")
@@ -50,23 +48,19 @@ func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Requ
 			h.logger.Sugar().Errorf("subscribe feed notifications: %v", err)
 			return
 		}
+
+		for {
+			_, op, err := wsutil.ReadClientData(conn)
+			if err != nil {
+				return
+			}
+			if op == ws.OpClose {
+				// TODO: close connections and remove all pools
+				return
+			}
+		}
 	}()
 
-	// listen(conn)
-
-}
-
-func listen(conn net.Conn) {
-	for {
-		msg, op, err := wsutil.ReadClientData(conn)
-		if err != nil {
-			// handle error
-		}
-		err = wsutil.WriteServerMessage(conn, op, msg)
-		if err != nil {
-			// handle error
-		}
-	}
 }
 
 func (h *Handler) writeError(ctx context.Context, w http.ResponseWriter, err error) {
@@ -85,14 +79,6 @@ func (h *Handler) writeError(ctx context.Context, w http.ResponseWriter, err err
 			"code":    errorResult.StatusCode,
 		})
 
-	if err != nil {
-		http.Error(w, xerrors.InternalErrorMessage, http.StatusInternalServerError) // TODO: make error mapping
-	}
-}
-
-func writeResponse(w http.ResponseWriter, response any) {
-	w.Header().Set(headers.ContentType, "application/json")
-	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, xerrors.InternalErrorMessage, http.StatusInternalServerError) // TODO: make error mapping
 	}

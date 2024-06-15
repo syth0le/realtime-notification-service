@@ -51,7 +51,7 @@ func NewRabbitConsumer(
 
 func (c *ConsumerImpl) Close() error {
 	c.Consumer.Close()
-	return c.Conn.Close()
+	return nil
 }
 
 func (c *ConsumerImpl) Run(handler rabbitmq.Handler) error {
