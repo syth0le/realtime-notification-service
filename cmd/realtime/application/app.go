@@ -12,6 +12,7 @@ import (
 
 	"github.com/syth0le/realtime-notification-service/cmd/realtime/configuration"
 	"github.com/syth0le/realtime-notification-service/internal/clients/redis"
+	"github.com/syth0le/realtime-notification-service/internal/infrastructure_services/connections_pool"
 	"github.com/syth0le/realtime-notification-service/internal/service/notifications"
 )
 
@@ -64,12 +65,12 @@ func (a *App) constructEnv(ctx context.Context) (*env, error) {
 
 	return &env{
 		notifications: &notifications.ServiceImpl{
-			RedisStorage: nil,
-			Logger:       a.Logger,
-			Conn:         conn,
-			Enable:       a.Config.Queue.Enable,
-			QueueName:    a.Config.Queue.QueueName,
-			ExchangeName: a.Config.Queue.ExchangeName,
+			ConnectionsPool: connections_pool.NewServiceImpl(a.Logger),
+			Logger:          a.Logger,
+			Conn:            conn,
+			Enable:          a.Config.Queue.Enable,
+			QueueName:       a.Config.Queue.QueueName,
+			ExchangeName:    a.Config.Queue.ExchangeName,
 		},
 	}, nil
 }

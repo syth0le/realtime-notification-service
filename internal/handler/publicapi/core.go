@@ -1,40 +1,31 @@
 package publicapi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
-	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
 	xerrors "github.com/syth0le/gopnik/errors"
 	"go.uber.org/zap"
 
 	"github.com/go-http-utils/headers"
 
+	"github.com/syth0le/realtime-notification-service/internal/model"
 	"github.com/syth0le/realtime-notification-service/internal/service/notifications"
 )
 
 type Handler struct {
 	logger               *zap.Logger
-	upgrader             websocket.Upgrader
 	notificationsService notifications.Service
 }
 
 func NewHandler(logger *zap.Logger, notificationsService notifications.Service) *Handler {
 	return &Handler{
-		logger: logger,
-		upgrader: websocket.Upgrader{
-			HandshakeTimeout:  0,
-			ReadBufferSize:    1024,
-			WriteBufferSize:   1024,
-			WriteBufferPool:   nil,
-			Subprotocols:      nil,
-			Error:             nil,
-			CheckOrigin:       nil,
-			EnableCompression: false, // todo: move to gopnik with cfg
-		},
+		logger:               logger,
 		notificationsService: notificationsService,
 	}
 }
@@ -42,42 +33,60 @@ func NewHandler(logger *zap.Logger, notificationsService notifications.Service) 
 func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	conn, err := h.upgrader.Upgrade(w, r, nil)
+	conn, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
-		h.logger.Sugar().Errorf("cannot upgrade connection: %v", err)
+		h.writeError(r.Context(), w, fmt.Errorf("cannot upgrade connection: %w", err))
 		return
 	}
-	defer conn.Close()
+
+	go func() {
+		fmt.Println(ctx.Err(), <-ctx.Done())
+		defer conn.Close()
+
+		userID := model.UserID("ROUTING_KEY_USERID")
+
+		err = h.notificationsService.SubscribeFeedNotifications(ctx, conn, &userID)
+		if err != nil {
+			h.logger.Sugar().Errorf("subscribe feed notifications: %v", err)
+			return
+		}
+	}()
 
 	// listen(conn)
 
-	err = h.notificationsService.SubscribeFeedNotifications(ctx, conn, "ROUTING_KEY_USERID")
-	if err != nil {
-		h.logger.Sugar().Errorf("subscribe feed notifications: %v", err)
-		return
+}
+
+func listen(conn net.Conn) {
+	for {
+		msg, op, err := wsutil.ReadClientData(conn)
+		if err != nil {
+			// handle error
+		}
+		err = wsutil.WriteServerMessage(conn, op, msg)
+		if err != nil {
+			// handle error
+		}
 	}
 }
 
-func listen(conn *websocket.Conn) {
-	for {
-		// read a message
-		messageType, messageContent, err := conn.ReadMessage()
-		timeReceive := time.Now()
-		if err != nil {
-			log.Println(err)
-			return
-		}
+func (h *Handler) writeError(ctx context.Context, w http.ResponseWriter, err error) {
+	h.logger.Sugar().Warnf("http response error: %v", err)
 
-		// print out that message
-		fmt.Println(string(messageContent))
+	w.Header().Set(headers.ContentType, "application/json")
+	errorResult, ok := xerrors.FromError(err)
+	if !ok {
+		h.logger.Sugar().Errorf("cannot write log message: %v", err)
+		return
+	}
+	w.WriteHeader(errorResult.StatusCode)
+	err = json.NewEncoder(w).Encode(
+		map[string]any{
+			"message": errorResult.Msg,
+			"code":    errorResult.StatusCode,
+		})
 
-		// reponse message
-		messageResponse := fmt.Sprintf("Your message is: %s. Time received : %v", messageContent, timeReceive)
-
-		if err := conn.WriteMessage(messageType, []byte(messageResponse)); err != nil {
-			log.Println(err)
-			return
-		}
+	if err != nil {
+		http.Error(w, xerrors.InternalErrorMessage, http.StatusInternalServerError) // TODO: make error mapping
 	}
 }
 

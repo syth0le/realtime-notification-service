@@ -18,7 +18,7 @@ application:
 
 redis:
   enable: true
-  address: "redis-cache:6479"
+  address: "connections-storage:6479"
   password: "password"
 
 queue:
