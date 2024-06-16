@@ -16,13 +16,13 @@ admin_server:
 application:
   app: "realtime-notifications"
 
-redis:
-  enable: true
-  address: "connections-storage:6479"
-  password: "password"
-
 queue:
   enable: true
   address: "amqp://guest:guest@notifications-broker:5672"
   queue_name: "notifications-queue"
   exchange_name: "events"
+
+auth:
+  enable: true
+  conn:
+    endpoint: app:7070

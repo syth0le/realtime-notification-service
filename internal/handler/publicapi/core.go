@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-http-utils/headers"
 
+	"github.com/syth0le/realtime-notification-service/internal/clients/auth"
 	"github.com/syth0le/realtime-notification-service/internal/model"
 	"github.com/syth0le/realtime-notification-service/internal/service/notifications"
 )
@@ -32,6 +33,17 @@ func NewHandler(logger *zap.Logger, notificationsService notifications.Service) 
 func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	userIDStr := ctx.Value(auth.UserIDValue)
+	if userIDStr == "" {
+		h.writeError(
+			r.Context(),
+			w,
+			xerrors.WrapNotFoundError(fmt.Errorf("cannot recognize userID"), xerrors.NotFoundMessage),
+		)
+		return
+	}
+	userID := userIDStr.(model.UserID)
+
 	conn, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
 		h.writeError(r.Context(), w, fmt.Errorf("cannot upgrade connection: %w", err))
@@ -40,8 +52,6 @@ func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Requ
 
 	go func() {
 		defer conn.Close()
-
-		userID := model.UserID("ROUTING_KEY_USERID")
 
 		err = h.notificationsService.SubscribeFeedNotifications(ctx, conn, &userID)
 		if err != nil {

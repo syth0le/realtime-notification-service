@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	xclients "github.com/syth0le/gopnik/clients"
 	xlogger "github.com/syth0le/gopnik/logger"
 	xservers "github.com/syth0le/gopnik/servers"
 
@@ -8,12 +9,12 @@ import (
 )
 
 type Config struct {
-	Logger             xlogger.LoggerConfig  `yaml:"logger"`
-	Application        ApplicationConfig     `yaml:"application"`
-	PublicServer       xservers.ServerConfig `yaml:"public_server"`
-	AdminServer        xservers.ServerConfig `yaml:"admin_server"`
-	ConnectionsStorage RedisConfig           `yaml:"redis"`
-	Queue              RabbitConfig          `yaml:"queue"`
+	Logger       xlogger.LoggerConfig  `yaml:"logger"`
+	Application  ApplicationConfig     `yaml:"application"`
+	PublicServer xservers.ServerConfig `yaml:"public_server"`
+	AdminServer  xservers.ServerConfig `yaml:"admin_server"`
+	Queue        RabbitConfig          `yaml:"queue"`
+	AuthClient   AuthClientConfig      `yaml:"auth"`
 }
 
 func (c *Config) Validate() error {
@@ -30,19 +31,30 @@ func (c *ApplicationConfig) Validate() error {
 	return nil // todo
 }
 
-type RedisConfig struct {
-	Enable             bool          `yaml:"enable"`
-	Address            string        `yaml:"address"`
-	Password           string        `yaml:"password" env:"CACHE_DB_PASSWORD"`
-	Database           int           `yaml:"database"`
-	ExpirationDuration time.Duration `yaml:"expiration_duration"`
-	HeaterDuration     time.Duration `yaml:"heater_duration"`
-	MaxListRange       int64         `yaml:"max_list_range"`
-}
-
 type RabbitConfig struct {
 	Enable       bool   `yaml:"enable"`
 	Address      string `yaml:"address"`
 	QueueName    string `yaml:"queue_name"`
 	ExchangeName string `yaml:"exchange_name"`
+}
+
+func (c *RabbitConfig) Validate() error {
+	if !c.Enable {
+		return nil
+	}
+
+	return nil // todo
+}
+
+type AuthClientConfig struct {
+	Enable bool                          `yaml:"enable"`
+	Conn   xclients.GRPCClientConnConfig `yaml:"conn"`
+}
+
+func (c *AuthClientConfig) Validate() error {
+	if !c.Enable {
+		return nil
+	}
+
+	return nil // todo
 }

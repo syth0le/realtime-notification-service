@@ -78,9 +78,6 @@ func (s *ServiceImpl) AddConsumer(userID *model.UserID) error {
 
 	s.pool[*userID] = consumer
 
-	res, _ := s.connectionsPoolService.GetUserConnections(userID)
-	s.logger.Sugar().Debugf("CONNECTIONS: (%d)", len(res))
-
 	go s.runConsumer(consumer, userID)
 	return nil
 }
@@ -161,7 +158,5 @@ func (s *ServiceImpl) UselessCode(userID *model.UserID) {
 
 			time.Sleep(5 * time.Second)
 		}
-
 	}()
-
 }

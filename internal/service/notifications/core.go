@@ -32,7 +32,7 @@ func (s ServiceImpl) SubscribeFeedNotifications(ctx context.Context, conn net.Co
 		return fmt.Errorf("add consumer: %w", err)
 	}
 
-	s.Logger.Sugar().Infof("REACHED HERE WIHTOUT BLOCKERS")
+	s.Logger.Sugar().Infof("created consumer and saved connection: %s", userID)
 
 	return nil
 }

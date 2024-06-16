@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"syscall"
 
+	xclients "github.com/syth0le/gopnik/clients"
+	xcloser "github.com/syth0le/gopnik/closer"
 	"github.com/wagslane/go-rabbitmq"
 	"go.uber.org/zap"
 
-	xcloser "github.com/syth0le/gopnik/closer"
-
 	"github.com/syth0le/realtime-notification-service/cmd/realtime/configuration"
+	"github.com/syth0le/realtime-notification-service/internal/clients/auth"
 	"github.com/syth0le/realtime-notification-service/internal/infrastructure_services/connections_pool"
 	"github.com/syth0le/realtime-notification-service/internal/infrastructure_services/consumers_pool"
-	"github.com/syth0le/realtime-notification-service/internal/model"
 	"github.com/syth0le/realtime-notification-service/internal/service/notifications"
 )
 
@@ -52,6 +52,7 @@ func (a *App) Run() error {
 }
 
 type env struct {
+	authClient    auth.Client
 	notifications notifications.Service
 }
 
@@ -71,10 +72,13 @@ func (a *App) constructEnv(ctx context.Context) (*env, error) {
 		connectionsPool,
 	)
 
-	mode := model.UserID("ROUTING_KEY_USERID")
-	consumersPool.UselessCode(&mode)
+	authClient, err := a.makeAuthClient(ctx, a.Config.AuthClient)
+	if err != nil {
+		return nil, fmt.Errorf("make auth client: %w", err)
+	}
 
 	return &env{
+		authClient: authClient,
 		notifications: &notifications.ServiceImpl{
 			ConnectionsPool: connectionsPool,
 			ConsumersPool:   consumersPool,
@@ -97,4 +101,19 @@ func (a *App) makeRabbitConn(cfg configuration.RabbitConfig) (*rabbitmq.Conn, er
 	}
 
 	return conn, nil
+}
+
+func (a *App) makeAuthClient(ctx context.Context, cfg configuration.AuthClientConfig) (auth.Client, error) {
+	if !cfg.Enable {
+		return auth.NewClientMock(a.Logger), nil
+	}
+
+	connection, err := xclients.NewGRPCClientConn(ctx, cfg.Conn)
+	if err != nil {
+		return nil, fmt.Errorf("new grpc conn: %w", err)
+	}
+
+	a.Closer.Add(connection.Close)
+
+	return auth.NewAuthImpl(a.Logger, connection), nil
 }

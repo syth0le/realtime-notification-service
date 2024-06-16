@@ -22,6 +22,7 @@ func (a *App) publicMux(env *env) *chi.Mux {
 	handler := publicapi.NewHandler(a.Logger, env.notifications)
 
 	mux.Route("/post", func(r chi.Router) {
+		r.Use(env.authClient.AuthenticationInterceptor)
 		r.HandleFunc("/feed/posted", handler.SubscribeFeedNotifications)
 	})
 

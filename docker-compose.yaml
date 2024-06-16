@@ -12,7 +12,7 @@ services:
       - "8091:8091"
     depends_on:
       notifications-broker:
-        condition: service_healthy # needful setting which wait available postgres host
+        condition: service_healthy # needful setting which wait available rabbit host
     volumes:
       - .:/usr/src/app
     networks:
@@ -37,14 +37,9 @@ services:
       retries: 5
 
 volumes:
-  redis-cache-data:
   notifications-broker-data:
   notifications-broker-data-log:
 
 networks:
   notifications_net:
     driver: bridge
-#    ipam:
-#      driver: default
-#      config:
-#        - subnet: 172.16.1.0/24

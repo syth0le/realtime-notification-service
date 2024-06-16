@@ -3,6 +3,7 @@ package configuration
 import (
 	"time"
 
+	xclients "github.com/syth0le/gopnik/clients"
 	xlogger "github.com/syth0le/gopnik/logger"
 	xservers "github.com/syth0le/gopnik/servers"
 )
@@ -34,20 +35,22 @@ func NewDefaultConfig() *Config {
 			Endpoint: "",
 			Port:     0,
 		},
-		ConnectionsStorage: RedisConfig{
-			Enable:             false,
-			Address:            "",
-			Password:           "",
-			Database:           0,
-			ExpirationDuration: 5 * time.Minute,
-			HeaterDuration:     24 * time.Hour,
-			MaxListRange:       1000,
-		},
 		Queue: RabbitConfig{
 			Enable:       false,
 			Address:      "",
 			QueueName:    "",
 			ExchangeName: "",
+		},
+		AuthClient: AuthClientConfig{
+			Enable: false,
+			Conn: xclients.GRPCClientConnConfig{
+				Endpoint:              "",
+				UserAgent:             defaultAppName,
+				MaxRetries:            0,
+				TimeoutBetweenRetries: 0,
+				InitTimeout:           0,
+				EnableCompressor:      false,
+			},
 		},
 	}
 }
