@@ -79,12 +79,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/syth0le/gopnik v0.0.0-20240308124803-26754de10123 h1:t39jyq57W3ZWYCa2TuqwuUEYZRq5ItrLMz962rk97sk=
-github.com/syth0le/gopnik v0.0.0-20240308124803-26754de10123/go.mod h1:wxk6j4/UvfkpAY1vKB17WAqVfTBdzEC2owgJ4xC7nfs=
 github.com/syth0le/gopnik v0.0.0-20240616213023-1c20ad938bed h1:mKznelnC8wTX2C6vcAHaTkpIs78AK5d0e9efEXH/oQ4=
 github.com/syth0le/gopnik v0.0.0-20240616213023-1c20ad938bed/go.mod h1:wxk6j4/UvfkpAY1vKB17WAqVfTBdzEC2owgJ4xC7nfs=
-github.com/syth0le/social-network v0.0.0-20240616205345-a513333f1227 h1:QrTxb2nAYrjJvVz73PcSdqVzYD5JSIsiO/O2uVaxgA4=
-github.com/syth0le/social-network v0.0.0-20240616205345-a513333f1227/go.mod h1:8iLi3QpFpWX3BIeLbZf9M5kxh4WHqSvvy9gRZcWLBCw=
 github.com/syth0le/social-network v0.0.0-20240616221031-cc1d7bd4b3f4 h1:AYDIzzs8Hc1aQl/I28L+isYT4xoDD/zevhMxY2lIGFE=
 github.com/syth0le/social-network v0.0.0-20240616221031-cc1d7bd4b3f4/go.mod h1:8iLi3QpFpWX3BIeLbZf9M5kxh4WHqSvvy9gRZcWLBCw=
 github.com/wagslane/go-rabbitmq v0.13.0 h1:u2JfKbwi3cbxCExKV34RrhKBZjW2HoRwyPTA8pERyrs=

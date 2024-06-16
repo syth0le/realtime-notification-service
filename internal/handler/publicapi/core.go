@@ -30,6 +30,7 @@ func NewHandler(logger *zap.Logger, notificationsService notifications.Service) 
 	}
 }
 
+// todo: write err for websocket(not http) correctly
 func (h *Handler) SubscribeFeedNotifications(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

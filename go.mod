@@ -9,7 +9,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/spf13/pflag v1.0.5
 	github.com/syth0le/gopnik v0.0.0-20240616213023-1c20ad938bed
-	github.com/syth0le/social-network v0.0.0-20240616205345-a513333f1227
+	github.com/syth0le/social-network v0.0.0-20240616221031-cc1d7bd4b3f4
 	github.com/wagslane/go-rabbitmq v0.13.0
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.62.1

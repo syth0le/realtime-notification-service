@@ -8,9 +8,11 @@ import (
 
 	"github.com/go-http-utils/headers"
 	xerrors "github.com/syth0le/gopnik/errors"
-	inpb "github.com/syth0le/social-network/pkg/proto/internalapi"
+	inpb "github.com/syth0le/social-network/proto/internalapi"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	"github.com/syth0le/realtime-notification-service/internal/model"
 )
 
 const authHeader = "Authorization"
@@ -36,13 +38,13 @@ func (c *ClientImpl) AuthenticationInterceptor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authToken := r.Header.Get(authHeader)
 
-		userID, err := c.client.ValidateToken(r.Context(), &inpb.ValidateTokenRequest{Token: authToken})
+		resp, err := c.client.ValidateToken(r.Context(), &inpb.ValidateTokenRequest{Token: authToken})
 		if err != nil {
 			c.writeError(w, fmt.Errorf("validate token: %w", err))
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserIDValue, userID)
+		ctx := context.WithValue(r.Context(), UserIDValue, model.UserID(resp.UserId))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
