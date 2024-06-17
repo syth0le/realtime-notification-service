@@ -12,7 +12,7 @@ admin_server:
   enable: true
   endpoint: "localhost"
   port: 8091
-#  const websocket = new WebSocket("ws://localhost:8001/");
+
 application:
   app: "realtime-notifications"
 
@@ -25,4 +25,4 @@ queue:
 auth:
   enable: true
   conn:
-    endpoint: app:7070
+    endpoint: social-network:7070

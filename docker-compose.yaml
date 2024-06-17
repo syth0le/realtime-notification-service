@@ -17,6 +17,9 @@ services:
       - .:/usr/src/app
     networks:
       - notifications_net
+      - social-network_social_network_net
+    external_links:
+      - backend:backend
 
   notifications-broker:
     image: rabbitmq:3-management-alpine
@@ -30,6 +33,7 @@ services:
     restart: always
     networks:
       - notifications_net
+      - social-network_social_network_net
     healthcheck:
       test: [ "CMD", "rabbitmqctl", "status" ]
       interval: 5s
@@ -43,3 +47,5 @@ volumes:
 networks:
   notifications_net:
     driver: bridge
+  social-network_social_network_net:
+    external: true

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
@@ -115,10 +114,7 @@ func (s *ServiceImpl) runConsumer(consumer rabbit.Consumer, userID *model.UserID
 				err := s.connectionsPoolService.DeleteConnection(userID, conn)
 				if err != nil {
 					s.logger.Sugar().Errorf("delete connection: %v", err)
-					return rabbitmq.NackDiscard
 				}
-
-				return rabbitmq.NackDiscard
 			}
 		}
 
@@ -126,37 +122,4 @@ func (s *ServiceImpl) runConsumer(consumer rabbit.Consumer, userID *model.UserID
 	})
 
 	return err
-}
-
-func (s *ServiceImpl) UselessCode(userID *model.UserID) {
-	publisher, _ := rabbitmq.NewPublisher(s.conn)
-
-	go func() {
-		for {
-			res, _ := s.connectionsPoolService.GetUserConnections(userID)
-
-			for _, conn := range res {
-				s.logger.Sugar().Infof("user connection: %v %v", conn.RemoteAddr(), conn.LocalAddr())
-			}
-
-			defer publisher.Close()
-
-			post := &model.Post{
-				ID:       model.PostID("234"),
-				Text:     "SOME TEXT",
-				AuthorID: model.UserID("234"),
-			}
-			binary, _ := post.MarshalBinary()
-
-			publisher.Publish(
-				binary,
-				[]string{userID.String()},
-				rabbitmq.WithPublishOptionsContentType("application/json"),
-				rabbitmq.WithPublishOptionsExchange(s.exchangeName),
-				rabbitmq.WithPublishOptionsExpiration("5000"),
-			)
-
-			time.Sleep(5 * time.Second)
-		}
-	}()
 }
