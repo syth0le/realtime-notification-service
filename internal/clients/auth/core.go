@@ -40,7 +40,7 @@ func (c *ClientImpl) AuthenticationInterceptor(next http.Handler) http.Handler {
 
 		resp, err := c.client.ValidateToken(r.Context(), &inpb.ValidateTokenRequest{Token: authToken})
 		if err != nil {
-			c.writeError(w, fmt.Errorf("validate token: %w", err))
+			c.writeError(w, xerrors.WrapForbiddenError(fmt.Errorf("validate token: %w", err), "token validation failed"))
 			return
 		}
 
